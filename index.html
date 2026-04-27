@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AnyPromo AI — Promotional Products Expert</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --red:#E8192C;
+  --red-dark:#b91020;
+  --red-glow:rgba(232,25,44,0.35);
+  --black:#0a0a0a;
+  --charcoal:#111;
+  --surface:#161616;
+  --surface2:#1e1e1e;
+  --border:rgba(255,255,255,0.07);
+  --text:#f5f5f5;
+  --muted:rgba(255,255,255,0.42);
+  --white:#ffffff;
+}
+
+html,body{height:100%;overflow:hidden}
+body{font-family:'Outfit',sans-serif;background:var(--black);color:var(--text);display:flex;flex-direction:column}
+
+/* ── NOISE OVERLAY ── */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity:0.4;
+}
+
+/* ── ANIMATED BG BLOBS ── */
+.bg{position:fixed;inset:0;overflow:hidden;z-index:0}
+.blob{position:absolute;border-radius:50%;filter:blur(90px);animation:drift 18s ease-in-out infinite alternate}
+.blob1{width:600px;height:600px;background:radial-gradient(circle,rgba(232,25,44,0.18) 0%,transparent 70%);top:-20%;left:-10%;animation-duration:20s}
+.blob2{width:400px;height:400px;background:radial-gradient(circle,rgba(232,25,44,0.1) 0%,transparent 70%);bottom:-10%;right:20%;animation-duration:15s;animation-delay:-7s}
+.blob3{width:300px;height:300px;background:radial-gradient(circle,rgba(200,20,40,0.08) 0%,transparent 70%);top:40%;right:-5%;animation-duration:25s;animation-delay:-3s}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}100%{transform:translate(40px,30px) scale(1.08)}}
+
+/* ── FINE GRID ── */
+.grid-overlay{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+
+/* ── HEADER BAR ── */
+.header{
+  position:relative;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 32px;
+  border-bottom:1px solid var(--border);
+  background:rgba(10,10,10,0.85);
+  backdrop-filter:blur(20px);
+  flex-shrink:0;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{
+  width:36px;height:36px;background:var(--red);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:20px;color:#fff;letter-spacing:0;
+  box-shadow:0 0 20px var(--red-glow);
+}
+.logo-text{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.08em;color:#fff}
+.logo-text span{color:var(--red)}
+.header-tag{
+  font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--muted);padding:5px 12px;border:1px solid var(--border);border-radius:20px;
+}
+.header-pills{display:flex;gap:8px;align-items:center}
+.pill{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:500;color:var(--muted);
+  padding:5px 12px;border:1px solid var(--border);border-radius:20px;
+}
+.pill-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* ── MAIN LAYOUT ── */
+.main{
+  position:relative;z-index:5;
+  flex:1;display:flex;align-items:stretch;
+  overflow:hidden;min-height:0;
+}
+
+/* ── LEFT PANEL ── */
+.left-panel{
+  width:380px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  border-right:1px solid var(--border);
+  background:rgba(14,14,14,0.6);
+  backdrop-filter:blur(10px);
+  overflow-y:auto;
+  padding:40px 32px;
+  gap:40px;
+}
+.left-panel::-webkit-scrollbar{width:0}
+
+.hero-text{animation:fadeUp 0.6s ease both}
+.hero-eyebrow{
+  font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--red);margin-bottom:16px;display:flex;align-items:center;gap:8px;
+}
+.hero-eyebrow::before{content:'';display:block;width:20px;height:1px;background:var(--red)}
+.hero-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(42px,4vw,64px);
+  line-height:0.95;letter-spacing:0.02em;
+  color:#fff;margin-bottom:16px;
+}
+.hero-title .accent{color:var(--red);display:block}
+.hero-sub{font-size:14px;font-weight:300;color:var(--muted);line-height:1.7;max-width:300px}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat-card{
+  background:var(--surface2);border:1px solid var(--border);border-radius:12px;
+  padding:16px;transition:border-color 0.2s;
+}
+.stat-card:hover{border-color:rgba(232,25,44,0.3)}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--red);line-height:1}
+.stat-label{font-size:11px;color:var(--muted);margin-top:4px;font-weight:400}
+
+/* Feature list */
+.feature-list{display:flex;flex-direction:column;gap:10px}
+.feature-item{
+  display:flex;align-items:flex-start;gap:12px;
+  font-size:13px;color:rgba(255,255,255,0.7);line-height:1.5;
+}
+.feature-icon{
+  width:28px;height:28px;flex-shrink:0;
+  background:rgba(232,25,44,0.1);border:1px solid rgba(232,25,44,0.2);
+  border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-size:13px;margin-top:1px;
+}
+
+/* Quick chips */
+.chips-section{}
+.chips-label{font-size:11px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.chips-grid{display:flex;flex-wrap:wrap;gap:8px}
+.quick-chip-left{
+  font-size:12px;font-weight:400;
+  color:rgba(255,255,255,0.65);
+  padding:6px 13px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  border-radius:20px;cursor:pointer;
+  transition:all 0.18s ease;
+}
+.quick-chip-left:hover{
+  background:rgba(232,25,44,0.1);
+  border-color:rgba(232,25,44,0.4);
+  color:#fff;
+}
+
+/* ── CHAT PANEL ── */
+.chat-panel{
+  flex:1;display:flex;flex-direction:column;
+  background:rgba(10,10,10,0.5);
+  backdrop-filter:blur(10px);
+  overflow:hidden;min-width:0;
+}
+
+/* Chat header */
+.chat-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.chat-header-left{display:flex;align-items:center;gap:12px}
+.ai-avatar{
+  width:40px;height:40px;border-radius:12px;
+  background:linear-gradient(135deg,var(--red),var(--red-dark));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 20px var(--red-glow);flex-shrink:0;
+}
+.chat-header-info{}
+.chat-header-name{font-size:15px;font-weight:600;color:#fff}
+.chat-header-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.chat-header-badges{display:flex;gap:8px}
+.badge{
+  font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;
+  padding:3px 8px;border-radius:4px;
+}
+.badge-green{background:rgba(34,197,94,0.12);color:#22c55e;border:1px solid rgba(34,197,94,0.2)}
+.badge-red{background:rgba(232,25,44,0.12);color:var(--red);border:1px solid rgba(232,25,44,0.2)}
+
+/* Messages */
+.chat-messages{
+  flex:1;overflow-y:auto;
+  padding:24px;display:flex;flex-direction:column;gap:16px;
+  scroll-behavior:smooth;
+}
+.chat-messages::-webkit-scrollbar{width:3px}
+.chat-messages::-webkit-scrollbar-track{background:transparent}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* Welcome message */
+.welcome-card{
+  background:linear-gradient(135deg,rgba(232,25,44,0.08),rgba(232,25,44,0.03));
+  border:1px solid rgba(232,25,44,0.15);border-radius:16px;padding:20px 24px;
+  animation:fadeUp 0.5s ease both;
+}
+.welcome-title{font-size:16px;font-weight:600;color:#fff;margin-bottom:6px}
+.welcome-sub{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* Message rows */
+.msg-row{display:flex;gap:10px;align-items:flex-end;animation:fadeUp 0.3s ease both}
+.msg-row.user{flex-direction:row-reverse}
+
+.msg-avatar-sm{
+  width:28px;height:28px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:12px;
+}
+.msg-avatar-sm.bot-av{background:linear-gradient(135deg,var(--red),var(--red-dark))}
+.msg-avatar-sm.user-av{background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:10px;font-weight:600}
+
+.msg-bubble{
+  max-width:75%;padding:11px 16px;border-radius:14px;
+  font-size:13.5px;line-height:1.6;
+}
+.bot .msg-bubble{
+  background:var(--surface2);border:1px solid var(--border);
+  color:rgba(255,255,255,0.85);border-bottom-left-radius:4px;
+}
+.user .msg-bubble{
+  background:var(--red);color:#fff;border-bottom-right-radius:4px;
+  box-shadow:0 4px 20px rgba(232,25,44,0.3);
+}
+
+/* Product cards */
+.product-cards{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.product-card{
+  display:flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  border-radius:10px;padding:10px 14px;cursor:pointer;
+  text-decoration:none;transition:all 0.18s ease;
+}
+.product-card:hover{border-color:rgba(232,25,44,0.4);background:rgba(232,25,44,0.06);transform:translateX(3px)}
+.product-card-icon{
+  width:34px;height:34px;border-radius:8px;
+  background:rgba(232,25,44,0.1);border:1px solid rgba(232,25,44,0.15);
+  display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;
+}
+.product-card-name{font-size:13px;font-weight:500;color:#fff}
+.product-card-price{font-size:11px;color:var(--red);margin-top:2px;font-weight:600}
+.product-card-arrow{margin-left:auto;color:var(--muted);font-size:14px}
+
+/* Product IMAGE cards */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+  max-width: 520px;
+}
+.product-img-card {
+  display: flex; flex-direction: column;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px; overflow: hidden;
+  cursor: pointer; text-decoration: none;
+  transition: all 0.2s ease;
+}
+.product-img-card:hover {
+  border-color: rgba(232,25,44,0.45);
+  background: rgba(232,25,44,0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.product-img-area {
+  height: 90px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 44px;
+  background: linear-gradient(135deg, rgba(232,25,44,0.08), rgba(232,25,44,0.03));
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.product-img-info { padding: 10px 12px; }
+.product-img-name {
+  font-size: 12px; font-weight: 600; color: #fff;
+  line-height: 1.35; margin-bottom: 4px;
+}
+.product-img-price {
+  font-size: 11px; color: var(--red); font-weight: 700;
+}
+.product-img-cta {
+  font-size: 10px; color: var(--muted); margin-top: 4px;
+  display: flex; align-items: center; gap: 4px;
+}
+
+/* Related questions */
+.related-questions {
+  display: flex; flex-wrap: wrap; gap: 7px;
+  margin-top: 12px; max-width: 520px;
+}
+.related-q {
+  font-size: 12px; font-weight: 400;
+  color: rgba(255,255,255,0.6);
+  padding: 6px 13px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px; cursor: pointer;
+  transition: all 0.18s ease; white-space: nowrap;
+  font-family: 'Outfit', sans-serif; line-height: 1;
+}
+.related-q:hover {
+  background: rgba(232,25,44,0.1);
+  border-color: rgba(232,25,44,0.45);
+  color: #fff;
+}
+.related-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+  width: 100%; margin-bottom: 2px;
+}
+
+/* Typing */
+.typing-row{display:flex;gap:10px;align-items:flex-end}
+.typing-bubble{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:14px;border-bottom-left-radius:4px;padding:14px 16px;
+  display:flex;gap:5px;align-items:center;
+}
+.typing-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--muted);animation:typingBounce 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2){animation-delay:0.2s}
+.typing-dot:nth-child(3){animation-delay:0.4s}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-5px);opacity:1}}
+
+/* Input area */
+.chat-input-area{
+  padding:16px 24px 16px;flex-shrink:0;
+  border-top:1px solid var(--border);
+}
+.input-wrapper{
+  display:flex;align-items:flex-end;gap:10px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:14px;padding:10px 10px 10px 16px;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.input-wrapper:focus-within{
+  border-color:rgba(232,25,44,0.5);
+  box-shadow:0 0 0 3px rgba(232,25,44,0.08);
+}
+.chat-textarea{
+  flex:1;background:transparent;border:none;outline:none;resize:none;
+  font-family:'Outfit',sans-serif;font-size:14px;color:#fff;
+  line-height:1.5;max-height:100px;min-height:20px;
+}
+.chat-textarea::placeholder{color:var(--muted)}
+.send-btn{
+  width:36px;height:36px;flex-shrink:0;
+  background:var(--red);border:none;border-radius:10px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  transition:all 0.18s;box-shadow:0 0 15px var(--red-glow);
+}
+.send-btn:hover{background:var(--red-dark);transform:scale(1.05)}
+.send-btn:disabled{background:var(--surface2);box-shadow:none;cursor:not-allowed;transform:none}
+
+/* Input footer */
+.input-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:10px;padding:0 2px;
+}
+.reviews-strip{display:flex;align-items:center;gap:6px}
+.stars{display:flex;gap:2px}
+.stars svg{width:11px;height:11px;fill:var(--red)}
+.reviews-text{font-size:11px;color:var(--muted)}
+.reviews-text strong{color:rgba(255,255,255,0.7);font-weight:600}
+.powered-by{font-size:11px;color:var(--muted)}
+.powered-by span{color:var(--red);font-weight:600}
+
+/* ── RIGHT PANEL ── */
+.right-panel{
+  width:260px;flex-shrink:0;
+  border-left:1px solid var(--border);
+  background:rgba(14,14,14,0.6);
+  backdrop-filter:blur(10px);
+  display:flex;flex-direction:column;gap:0;
+  overflow-y:auto;
+}
+.right-panel::-webkit-scrollbar{width:0}
+.right-section{padding:24px 20px;border-bottom:1px solid var(--border)}
+.right-section:last-child{border-bottom:none}
+.right-section-title{
+  font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:14px;
+}
+
+/* Capability chips */
+.cap-list{display:flex;flex-direction:column;gap:8px}
+.cap-item{
+  display:flex;align-items:center;gap:10px;
+  font-size:12px;color:rgba(255,255,255,0.6);
+}
+.cap-dot{width:4px;height:4px;border-radius:50%;background:var(--red);flex-shrink:0}
+
+/* Industry tags */
+.industry-tags{display:flex;flex-wrap:wrap;gap:6px}
+.ind-tag{
+  font-size:11px;padding:4px 10px;border-radius:20px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  color:var(--muted);cursor:pointer;transition:all 0.18s;
+}
+.ind-tag:hover{border-color:rgba(232,25,44,0.4);color:rgba(255,255,255,0.8)}
+
+/* Activity feed */
+.activity-list{display:flex;flex-direction:column;gap:10px}
+.activity-item{display:flex;gap:10px;align-items:flex-start}
+.act-icon{
+  width:24px;height:24px;border-radius:6px;flex-shrink:0;
+  background:rgba(232,25,44,0.1);display:flex;align-items:center;justify-content:center;
+  font-size:11px;
+}
+.act-text{font-size:11px;color:var(--muted);line-height:1.5}
+.act-time{font-size:10px;color:rgba(255,255,255,0.25);margin-top:2px}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* Mobile */
+@media(max-width:900px){
+  .left-panel,.right-panel{display:none}
+  .chat-panel{flex:1}
+}
+@media(max-width:600px){
+  .header{padding:12px 16px}
+  .chat-messages{padding:16px}
+  .chat-input-area{padding:12px 16px}
+}
+</style>
+</head>
+<body>
+
+<div class="bg">
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-mark">A</div>
+    <div class="logo-text">ANY<span>PROMO</span></div>
+  </div>
+  <div class="header-pills">
+    <div class="pill"><span class="pill-dot"></span>AI Online</div>
+    <div class="pill">200,000+ Products</div>
+    <div class="pill">50,000+ Reviews</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- LEFT PANEL -->
+  <aside class="left-panel">
+    <div class="hero-text">
+      <div class="hero-eyebrow">Promotional AI Expert</div>
+      <h1 class="hero-title">
+        FIND YOUR
+        <span class="accent">PERFECT</span>
+        PROMO.
+      </h1>
+      <p class="hero-sub">Powered by deep research across 200,000+ products, ASI industry data, and real buyer insights — for every industry, demographic, and budget.</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num">200K+</div>
+        <div class="stat-label">Customizable Products</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">50K+</div>
+        <div class="stat-label">Positive Reviews</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">400+</div>
+        <div class="stat-label">Prestige Partners</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">110%</div>
+        <div class="stat-label">Price Guarantee</div>
+      </div>
+    </div>
+
+    <div class="feature-list">
+      <div class="feature-item"><div class="feature-icon">🔍</div>Industry-specific product recommendations backed by ASI research</div>
+      <div class="feature-item"><div class="feature-icon">🎯</div>Match swag to your demographic — Gen Z, Boomers, Women, Men and more</div>
+      <div class="feature-item"><div class="feature-icon">💰</div>Budget guidance from $0.28/item to premium executive gifts</div>
+      <div class="feature-item"><div class="feature-icon">⚡</div>Rush options — some items ship in 1 day with free virtual proofs</div>
+    </div>
+
+    <div class="chips-section">
+      <div class="chips-label">Try asking about</div>
+      <div class="chips-grid">
+        <button class="quick-chip-left" data-q="Trade show giveaways">Trade show giveaways</button>
+        <button class="quick-chip-left" data-q="Healthcare swag">Healthcare swag</button>
+        <button class="quick-chip-left" data-q="Gen Z merch ideas">Gen Z merch ideas</button>
+        <button class="quick-chip-left" data-q="Under $2 items">Under $2 items</button>
+        <button class="quick-chip-left" data-q="Eco-friendly promo">Eco-friendly promo</button>
+        <button class="quick-chip-left" data-q="Employee welcome kits">Employee welcome kits</button>
+        <button class="quick-chip-left" data-q="Real estate closing gifts">Real estate closing gifts</button>
+        <button class="quick-chip-left" data-q="Rush 1-day production">Rush 1-day production</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CHAT PANEL -->
+  <section class="chat-panel">
+
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <div class="ai-avatar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/><path d="M19 11h2M3 11h2"/>
+          </svg>
+        </div>
+        <div class="chat-header-info">
+          <div class="chat-header-name">AnyPromo AI</div>
+          <div class="chat-header-sub">Promotional Products Expert · Responds instantly</div>
+        </div>
+      </div>
+      <div class="chat-header-badges">
+        <span class="badge badge-green">● Live</span>
+        <span class="badge badge-red">ASI Research Backed</span>
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+
+      <!-- Welcome -->
+      <div class="welcome-card">
+        <div class="welcome-title">👋 Welcome to AnyPromo AI</div>
+        <div class="welcome-sub">I'm your promotional products expert — trained on ASI's end-buyer research across every industry, generation, and region. Ask me anything about finding the perfect branded swag for your campaign, event, or team.</div>
+      </div>
+
+      <!-- Quick chips inline -->
+      <div id="quickPrompts" style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 0">
+        <button class="inline-chip" data-q="What are the best trade show giveaways?">🎪 Trade show ideas</button>
+        <button class="inline-chip" data-q="What swag works best for healthcare organizations?">🏥 Healthcare swag</button>
+        <button class="inline-chip" data-q="What promo items do Gen Z buyers prefer?">⚡ Gen Z merch</button>
+        <button class="inline-chip" data-q="Show me eco-friendly promotional products">🌿 Eco-friendly</button>
+        <button class="inline-chip" data-q="I need products under $2 each for a large event">💰 Under $2</button>
+      </div>
+
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-area">
+      <div class="input-wrapper">
+        <textarea class="chat-textarea" id="chatInput" placeholder="Ask about products, industries, budgets, or demographics..." rows="1"></textarea>
+        <button class="send-btn" id="sendBtn" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+      <div class="input-footer">
+        <div class="reviews-strip">
+          <div class="stars">
+            <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+          </div>
+          <span class="reviews-text"><strong>50,000+</strong> Positive Reviews</span>
+        </div>
+        <span class="powered-by">Powered by <span>AnyPromo AI</span></span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- RIGHT PANEL -->
+  <aside class="right-panel">
+
+    <div class="right-section">
+      <div class="right-section-title">Capabilities</div>
+      <div class="cap-list">
+        <div class="cap-item"><div class="cap-dot"></div>Industry-specific recommendations</div>
+        <div class="cap-item"><div class="cap-dot"></div>Demographic targeting (Gen Z → Boomers)</div>
+        <div class="cap-item"><div class="cap-dot"></div>Budget planning & quantity tiers</div>
+        <div class="cap-item"><div class="cap-dot"></div>Eco-friendly & sustainable options</div>
+        <div class="cap-item"><div class="cap-dot"></div>Rush & 1-day production items</div>
+        <div class="cap-item"><div class="cap-dot"></div>Brand-name apparel (Nike, Adidas)</div>
+        <div class="cap-item"><div class="cap-dot"></div>Trade show & event strategy</div>
+        <div class="cap-item"><div class="cap-dot"></div>Regional buyer preferences</div>
+      </div>
+    </div>
+
+    <div class="right-section">
+      <div class="right-section-title">Industries</div>
+      <div class="industry-tags">
+        <span class="ind-tag" data-q="Best swag for healthcare buyers">Healthcare</span>
+        <span class="ind-tag" data-q="Best promo products for education buyers">Education</span>
+        <span class="ind-tag" data-q="Best swag for real estate agents">Real Estate</span>
+        <span class="ind-tag" data-q="Best promotional items for tech companies">Tech</span>
+        <span class="ind-tag" data-q="Best promo for construction companies">Construction</span>
+        <span class="ind-tag" data-q="Best promo products for retail businesses">Retail</span>
+        <span class="ind-tag" data-q="Best swag for hospitality and hotels">Hospitality</span>
+        <span class="ind-tag" data-q="Best promo items for nonprofits">Nonprofit</span>
+        <span class="ind-tag" data-q="Best promo for government agencies">Government</span>
+        <span class="ind-tag" data-q="Best promo for finance and banking">Finance</span>
+        <span class="ind-tag" data-q="Best promo for automotive businesses">Automotive</span>
+        <span class="ind-tag" data-q="Best promo for advertising agencies">Advertising</span>
+      </div>
+    </div>
+
+    <div class="right-section">
+      <div class="right-section-title">The AnyPromo Promise</div>
+      <div class="cap-list">
+        <div class="cap-item"><div class="cap-dot"></div>110% Price Guarantee</div>
+        <div class="cap-item"><div class="cap-dot"></div>Free virtual proofs in 2 hours</div>
+        <div class="cap-item"><div class="cap-dot"></div>100-day hassle-free returns</div>
+        <div class="cap-item"><div class="cap-dot"></div>Free ground shipping (Platinum)</div>
+        <div class="cap-item"><div class="cap-dot"></div>Call: 1-877-368-5678</div>
+      </div>
+    </div>
+
+    <div class="right-section">
+      <div class="right-section-title">Popular Right Now</div>
+      <div class="activity-list">
+        <div class="activity-item"><div class="act-icon">👕</div><div><div class="act-text">Custom Hoodies — #1 most-desired item in 2026</div></div></div>
+        <div class="activity-item"><div class="act-icon">🥤</div><div><div class="act-text">Stanley-style Tumblers — top for Gen Z & Millennials</div></div></div>
+        <div class="activity-item"><div class="act-icon">🎒</div><div><div class="act-text">Branded Bags — 3,000+ lifetime impressions per bag</div></div></div>
+        <div class="activity-item"><div class="act-icon">🔋</div><div><div class="act-text">Power Banks — top for tech & trade shows</div></div></div>
+      </div>
+    </div>
+
+  </aside>
+
+</main>
+
+<script>
+// System prompt is handled server-side in api/chat.js
+
+const conversationHistory = [];
+let isLoading = false;
+
+// Lazy DOM accessors — safe whether script runs before or after DOM
+function getInput()   { return document.getElementById('chatInput'); }
+function getSendBtn() { return document.getElementById('sendBtn'); }
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (!sendBtn.disabled && !isLoading) sendMessage();
+  }
+}
+
+function sendQuick(text) {
+  document.getElementById('quickPrompts')?.remove();
+  getInput().value = text;
+  sendMessage();
+}
+
+function sendFromLeft(el) {
+  sendQuick(el.textContent);
+}
+
+async function sendMessage() {
+  const inp = getInput(), sb = getSendBtn();
+  const text = inp.value.trim();
+  if (!text || isLoading) return;
+  document.getElementById('quickPrompts')?.remove();
+  inp.value = '';
+  inp.style.height = 'auto';
+  sb.disabled = true;
+
+  appendUserMsg(text);
+  conversationHistory.push({ role: 'user', content: text });
+  showTyping();
+  isLoading = true;
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: conversationHistory })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || "I'm having trouble connecting. Please try again or visit anypromo.com.";
+    conversationHistory.push({ role: 'assistant', content: reply });
+    hideTyping();
+    renderBotMessage(reply);
+  } catch(err) {
+    hideTyping();
+    renderBotMessage("Connection issue. Please visit anypromo.com or call 1-877-368-5678 for help.");
+  }
+  isLoading = false;
+}
+
+
+function appendUserMsg(text) {
+  const c = document.getElementById('chatMessages');
+  const row = document.createElement('div');
+  row.className = 'msg-row user';
+  row.innerHTML = `
+    <div class="msg-avatar-sm user-av">YOU</div>
+    <div class="msg-bubble">${text.replace(/</g,'&lt;')}</div>`;
+  c.appendChild(row);
+  c.scrollTop = c.scrollHeight;
+}
+
+function renderBotMessage(text) {
+  const c = document.getElementById('chatMessages');
+
+  // ── Parse PRODUCTS block ──
+  const productMatch = text.match(/PRODUCTS:\n((?:- .+\n?)+)/);
+  let products = [];
+  let working = text;
+  if (productMatch) {
+    working = working.replace(productMatch[0], '').trim();
+    products = productMatch[1].split('\n')
+      .filter(l => l.trim().startsWith('- '))
+      .map(line => ({
+        name:  (line.match(/name:\s*([^|]+)/)||[])[1]?.trim() || 'Product',
+        price: (line.match(/price:\s*([^|]+)/)||[])[1]?.trim() || 'View pricing',
+        emoji: (line.match(/emoji:\s*([^|]+)/)||[])[1]?.trim() || '🎁',
+        url:   (line.match(/url:\s*(\S+)/)||[])[1]?.trim() || 'https://www.anypromo.com'
+      }));
+  }
+
+  // ── Parse RELATED block ──
+  const relatedMatch = working.match(/RELATED:\n((?:- .+\n?)+)/);
+  let relatedQs = [];
+  if (relatedMatch) {
+    working = working.replace(relatedMatch[0], '').trim();
+    relatedQs = relatedMatch[1].split('\n')
+      .filter(l => l.trim().startsWith('- '))
+      .map(l => l.replace(/^-\s*/, '').trim())
+      .filter(Boolean);
+  }
+
+  // ── Clean remaining text ──
+  const cleanText = working.trim();
+
+  // ── Build message wrapper (full-width below avatar) ──
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:flex;gap:10px;align-items:flex-start;animation:fadeUp 0.3s ease both';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar-sm bot-av';
+  avatar.style.flexShrink = '0';
+  avatar.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>';
+
+  const inner = document.createElement('div');
+  inner.style.cssText = 'display:flex;flex-direction:column;gap:10px;max-width:calc(100% - 40px)';
+
+  // Text bubble (only if there's text)
+  if (cleanText) {
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.style.marginBottom = '0';
+    bubble.innerHTML = cleanText
+      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\n\n/g,'<br><br>')
+      .replace(/\n/g,'<br>');
+    inner.appendChild(bubble);
+  }
+
+  // Product image grid (2-column)
+  if (products.length) {
+    const grid = document.createElement('div');
+    grid.className = 'product-grid';
+    // If odd number, use 1-col for last
+    if (products.length === 1 || products.length === 3) {
+      grid.style.gridTemplateColumns = '1fr';
+    }
+    products.forEach(p => {
+      const card = document.createElement('a');
+      card.className = 'product-img-card';
+      card.href = p.url;
+      card.target = '_blank';
+      card.rel = 'noopener';
+      card.innerHTML =
+        '<div class="product-img-area">' + p.emoji + '</div>' +
+        '<div class="product-img-info">' +
+          '<div class="product-img-name">' + p.name + '</div>' +
+          '<div class="product-img-price">' + p.price + '</div>' +
+          '<div class="product-img-cta">Shop on AnyPromo →</div>' +
+        '</div>';
+      grid.appendChild(card);
+    });
+    inner.appendChild(grid);
+  }
+
+  // Related questions
+  if (relatedQs.length) {
+    const relDiv = document.createElement('div');
+    relDiv.className = 'related-questions';
+    relDiv.innerHTML = '<span class="related-label">You might also ask</span>';
+    relatedQs.forEach(q => {
+      const btn = document.createElement('button');
+      btn.className = 'related-q';
+      btn.textContent = q;
+      btn.onclick = () => sendQuick(q);
+      relDiv.appendChild(btn);
+    });
+    inner.appendChild(relDiv);
+  }
+
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(inner);
+  c.appendChild(wrapper);
+  c.scrollTop = c.scrollHeight;
+}
+
+let typingEl = null;
+function showTyping() {
+  const c = document.getElementById('chatMessages');
+  typingEl = document.createElement('div');
+  typingEl.className = 'typing-row';
+  typingEl.id = 'typingRow';
+  typingEl.innerHTML = `
+    <div class="msg-avatar-sm bot-av"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg></div>
+    <div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  c.appendChild(typingEl);
+  c.scrollTop = c.scrollHeight;
+}
+function hideTyping() { document.getElementById('typingRow')?.remove(); }
+
+// ── Wire up all event listeners (no inline handlers needed) ──────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  const input   = getInput();
+  const sendBtn = getSendBtn();
+
+  // Textarea: enable send button, auto-resize
+  input.addEventListener('input', function() {
+    sendBtn.disabled = !input.value.trim();
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 100) + 'px';
+  });
+
+  // Textarea: Enter to send
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!sendBtn.disabled && !isLoading) sendMessage();
+    }
+  });
+
+  // Send button
+  sendBtn.addEventListener('click', sendMessage);
+
+  // All data-q elements (chips, tags, left panel) — delegated on document
+  document.addEventListener('click', function(e) {
+    const el = e.target.closest('[data-q]');
+    if (el) {
+      const q = el.getAttribute('data-q');
+      if (q) sendQuick(q);
+    }
+  });
+});
+
+</script>
+</body>
+</html>
